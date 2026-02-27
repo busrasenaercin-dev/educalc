@@ -1,0 +1,980 @@
+# educalc
+
+[EduCalc.txt](https://github.com/user-attachments/files/25590534/EduCalc.txt)
+<!DOCTYPE html>
+<html lang="tr">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="keywords" content="GANO, TYT, AYT, LGS, Takdir, Teşekkür hesaplama, YKS sıralama, OBP">
+    <title>EduCalc - Geleceğini Hesapla</title>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <style>
+        :root {
+            --primary: #4f46e5; 
+            --secondary: #9333ea; 
+            --accent: #e11d48; 
+            --dark-bg: #0f172a;
+            --glass-bg: rgba(255, 255, 255, 0.05);
+            --glass-border: rgba(255, 255, 255, 0.1);
+        }
+
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+            font-family: 'Segoe UI', system-ui, -apple-system, sans-serif;
+        }
+
+        body {
+            background: linear-gradient(135deg, #0f172a, #1e1b4b, #312e81);
+            background-attachment: fixed;
+            color: #fff;
+            min-height: 100vh;
+            overflow-x: hidden;
+        }
+
+        .glass {
+            background: var(--glass-bg);
+            backdrop-filter: blur(16px);
+            -webkit-backdrop-filter: blur(16px);
+            border: 1px solid var(--glass-border);
+            border-radius: 20px;
+            box-shadow: 0 4px 30px rgba(0, 0, 0, 0.1);
+        }
+
+        /* Top Navigation */
+        header {
+            padding: 20px 40px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            position: relative;
+            z-index: 50;
+        }
+
+        .logo {
+            font-size: 24px;
+            font-weight: bold;
+            background: linear-gradient(to right, #a855f7, #fb7185);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            text-shadow: 0 0 20px rgba(168, 85, 247, 0.4);
+            cursor: pointer;
+        }
+
+        .menu-toggle {
+            font-size: 24px;
+            cursor: pointer;
+            color: #fff;
+            z-index: 1001;
+            transition: transform 0.3s ease;
+        }
+
+        .menu-toggle:hover {
+            transform: scale(1.1);
+            color: var(--secondary);
+        }
+
+        /* Fullscreen Sidebar */
+        .sidebar {
+            position: fixed;
+            top: 0;
+            left: -100%;
+            width: 100vw;
+            height: 100vh;
+            background: rgba(15, 23, 42, 0.85);
+            backdrop-filter: blur(20px);
+            z-index: 1000;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            transition: left 0.6s cubic-bezier(0.77, 0, 0.175, 1);
+        }
+
+        .sidebar.active { left: 0; }
+
+        .dock-container {
+            display: flex;
+            gap: 15px;
+            padding: 20px;
+            border-radius: 24px;
+            background: rgba(255, 255, 255, 0.03);
+            border: 1px solid rgba(255, 255, 255, 0.05);
+            align-items: flex-end;
+            height: 120px;
+            flex-wrap: wrap;
+            justify-content: center;
+        }
+
+        .dock-item {
+            width: 60px;
+            height: 60px;
+            background: linear-gradient(135deg, var(--primary), var(--secondary));
+            border-radius: 16px;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            font-size: 24px;
+            cursor: pointer;
+            position: relative;
+            transition: all 0.3s cubic-bezier(0.25, 0.8, 0.25, 1);
+            box-shadow: 0 10px 20px rgba(0,0,0,0.3);
+        }
+
+        .dock-item::after {
+            content: attr(data-title);
+            position: absolute;
+            bottom: -30px;
+            font-size: 14px;
+            opacity: 0;
+            transition: opacity 0.3s ease;
+            white-space: nowrap;
+        }
+
+        .dock-item:hover {
+            transform: scale(1.4) translateY(-10px);
+            margin: 0 10px;
+            box-shadow: 0 15px 30px rgba(147, 51, 234, 0.5);
+            z-index: 10;
+        }
+
+        .dock-item:hover::after { opacity: 1; }
+
+        /* Main Content */
+        .container {
+            max-width: 800px;
+            margin: 20px auto 60px auto;
+            padding: 0 20px;
+        }
+
+        .module {
+            display: none;
+            padding: 30px;
+            animation: fadeIn 0.5s ease;
+        }
+
+        .module.active { display: block; }
+
+        @keyframes fadeIn {
+            from { opacity: 0; transform: translateY(20px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+
+        h2 {
+            margin-bottom: 25px;
+            text-align: center;
+            font-size: 28px;
+            text-shadow: 0 0 10px rgba(255,255,255,0.3);
+        }
+
+        h3 {
+            margin: 20px 0 15px 0;
+            font-size: 18px;
+            color: #fb7185;
+            border-bottom: 1px solid rgba(255,255,255,0.1);
+            padding-bottom: 5px;
+        }
+
+        .home-content { text-align: center; padding: 60px 20px; }
+        .home-title {
+            font-size: 4rem; font-weight: 800; margin-bottom: 20px;
+            background: linear-gradient(135deg, #a855f7, #fb7185, #4f46e5);
+            -webkit-background-clip: text; -webkit-text-fill-color: transparent;
+            animation: glow 3s infinite alternate;
+        }
+        @keyframes glow {
+            from { text-shadow: 0 0 20px rgba(168, 85, 247, 0.2); }
+            to { text-shadow: 0 0 30px rgba(251, 113, 133, 0.6); }
+        }
+        .home-subtitle { font-size: 1.2rem; color: #cbd5e1; margin-bottom: 40px; line-height: 1.6; }
+        
+        .start-btn {
+            background: linear-gradient(45deg, #ec4899, #8b5cf6); padding: 15px 40px;
+            font-size: 1.2rem; border-radius: 30px; border: none; color: white;
+            font-weight: bold; cursor: pointer; box-shadow: 0 10px 20px rgba(236, 72, 153, 0.3);
+            transition: transform 0.3s, box-shadow 0.3s;
+        }
+        .start-btn:hover { transform: translateY(-5px); box-shadow: 0 15px 30px rgba(236, 72, 153, 0.5); }
+
+        /* Inputs & Forms */
+        .form-group { display: flex; gap: 15px; margin-bottom: 15px; align-items: center; }
+
+        .yks-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 15px; margin-bottom: 20px; }
+        .config-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(150px, 1fr)); gap: 15px; margin-bottom: 20px; }
+
+        .subject-group {
+            background: rgba(255, 255, 255, 0.03); padding: 15px; border-radius: 12px;
+            border: 1px solid rgba(255,255,255,0.08); transition: transform 0.3s, background 0.3s;
+        }
+        .subject-group:hover { background: rgba(255, 255, 255, 0.08); transform: translateY(-2px); }
+        .subject-title { font-size: 14px; color: #e2e8f0; margin-bottom: 10px; font-weight: 600; }
+        .subject-inputs { display: flex; gap: 10px; }
+
+        input, select {
+            width: 100%; padding: 12px; border-radius: 10px; border: 1px solid rgba(255,255,255,0.2);
+            background: rgba(0,0,0,0.3); color: #fff; outline: none; transition: border-color 0.3s; font-size: 14px;
+        }
+        input:focus, select:focus { border-color: var(--secondary); box-shadow: 0 0 10px rgba(147, 51, 234, 0.3); }
+
+        .in-dy, .lgs-dy { display: none; }
+        .in-dy::placeholder, .lgs-dy::placeholder { color: #94a3b8; }
+
+        button.btn-primary {
+            background: linear-gradient(45deg, var(--primary), var(--secondary)); border: none; padding: 12px 24px;
+            border-radius: 10px; color: white; font-weight: bold; cursor: pointer; width: 100%; margin-top: 20px; transition: transform 0.2s;
+        }
+        button.btn-primary:hover { transform: translateY(-2px); }
+
+        button.btn-add {
+            background: transparent; border: 1px dashed var(--secondary); color: var(--secondary); padding: 10px;
+            border-radius: 10px; cursor: pointer; width: 100%; margin-top: 10px; transition: all 0.3s;
+        }
+        button.btn-add:hover { background: rgba(147, 51, 234, 0.1); }
+
+        table { width: 100%; border-collapse: collapse; margin: 20px 0; background: rgba(0,0,0,0.2); border-radius: 10px; overflow: hidden; }
+        th, td { padding: 12px; text-align: center; border-bottom: 1px solid rgba(255,255,255,0.1); }
+        th { background: rgba(147, 51, 234, 0.3); color: #fff; font-weight: bold; }
+        
+        .analysis-text {
+            background: rgba(255, 255, 255, 0.05); padding: 15px; border-left: 4px solid var(--accent);
+            border-radius: 5px; margin-top: 15px; font-size: 15px; text-align: left; line-height: 1.5;
+        }
+
+        .result-card {
+            margin-top: 25px; padding: 20px; border-radius: 15px; text-align: center; font-size: 18px;
+            display: none; transform: scale(0.9); transition: all 0.4s ease;
+        }
+        .result-card.show { display: block; transform: scale(1); }
+        .result-success { background: rgba(16, 185, 129, 0.1); border: 1px solid #10b981; }
+        .result-warning { background: rgba(245, 158, 11, 0.2); border: 1px solid #f59e0b; }
+        .result-danger { background: rgba(239, 68, 68, 0.2); border: 1px solid #ef4444; }
+
+        .signature {
+            position: fixed; bottom: 20px; right: 30px; font-size: 28px; font-family: 'Brush Script MT', 'Comic Sans MS', cursive;
+            background: linear-gradient(45deg, #a855f7, #fb7185); -webkit-background-clip: text; -webkit-text-fill-color: transparent;
+            z-index: 50; pointer-events: none;
+        }
+
+        @media (max-width: 600px) {
+            .yks-grid { grid-template-columns: 1fr; }
+            .home-title { font-size: 2.5rem; }
+            .form-group { flex-direction: column; gap: 10px; }
+            .config-grid { grid-template-columns: 1fr; }
+        }
+    </style>
+</head>
+<body>
+
+    <header>
+        <div class="logo" onclick="switchModule('home')">EduCalc</div>
+        <div class="menu-toggle" onclick="toggleSidebar()"><i class="fa-solid fa-bars"></i></div>
+    </header>
+
+    <div class="sidebar" id="sidebar">
+        <div class="dock-container">
+            <div class="dock-item" data-title="Ana Sayfa" onclick="switchModule('home')"><i class="fa-solid fa-house"></i></div>
+            <div class="dock-item" data-title="AGNO" onclick="switchModule('agno')"><i class="fa-solid fa-graduation-cap"></i></div>
+            <div class="dock-item" data-title="YKS Uzman" onclick="switchModule('yks')"><i class="fa-solid fa-brain"></i></div>
+            <div class="dock-item" data-title="LGS Uzman" onclick="switchModule('lgs')"><i class="fa-solid fa-school"></i></div>
+            <div class="dock-item" data-title="Takdir/Teşekkür" onclick="switchModule('belge')"><i class="fa-solid fa-award"></i></div>
+            <div class="dock-item" data-title="Kapat" style="background: #ef4444;" onclick="toggleSidebar()"><i class="fa-solid fa-xmark"></i></div>
+        </div>
+    </div>
+
+    <div class="container">
+        
+        <div id="home" class="module active">
+            <div class="home-content">
+                <i class="fa-solid fa-rocket" style="font-size: 3rem; color: #fb7185; margin-bottom: 20px;"></i>
+                <h1 class="home-title">EduCalc'e Hoş Geldin</h1>
+                <p class="home-subtitle">
+                    YKS ve LGS sıralamanı uzman gibi analiz et, Takdir/Teşekkür alıp alamayacağını önceden hesapla. <br>
+                    Tüm eğitim hesaplamaların modern, hızlı ve tek bir yerde.
+                </p>
+                <button class="start-btn" onclick="toggleSidebar()">Modül Seç ve Başla</button>
+            </div>
+        </div>
+
+        <div id="belge" class="module glass">
+            <h2>Takdir / Teşekkür Hesaplama</h2>
+            <p style="text-align: center; font-size: 14px; opacity: 0.8; margin-bottom: 20px;">Kademenizi seçin, dersler MEB müfredatına göre otomatik yüklenecektir.</p>
+            
+            <div class="config-grid">
+                <div id="kademeContainer">
+                    <select id="bKademe" onchange="handleKademeChange()">
+                        <option value="lise">Lise Öğrencisi</option>
+                        <option value="ortaokul">Ortaokul Öğrencisi</option>
+                    </select>
+                </div>
+                <div id="sinifContainer">
+                    <select id="bSinif" onchange="handleSinifChange()">
+                        <option value="9">9. Sınıf</option>
+                        <option value="10">10. Sınıf</option>
+                        <option value="11">11. Sınıf</option>
+                        <option value="12">12. Sınıf</option>
+                    </select>
+                </div>
+                <div id="alanContainer" style="display:none;">
+                    <select id="bAlan" onchange="generateCourseList()">
+                        <option value="say">Sayısal</option>
+                        <option value="ea">Eşit Ağırlık</option>
+                        <option value="soz">Sözel</option>
+                        <option value="dil">Yabancı Dil</option>
+                    </select>
+                </div>
+            </div>
+
+            <div id="belgeList">
+                </div>
+            
+            <button class="btn-add" onclick="addBelgeRow()"><i class="fa-solid fa-plus"></i> Seçmeli / Ekstra Ders Ekle</button>
+            <button class="btn-primary" onclick="calculateBelgeDinamik()"><i class="fa-solid fa-award"></i> Belge Durumunu Sorgula</button>
+            <div id="belgeResult" class="result-card"></div>
+        </div>
+
+        <div id="yks" class="module glass">
+            <h2>YKS (TYT-AYT) Uzman Analizi</h2>
+            <p style="text-align: center; font-size: 14px; opacity: 0.8; margin-bottom: 20px;">Hedef Yıl ve Standart Sapma Verileriyle Tahmini Sıralama</p>
+            
+            <div class="form-group" style="flex-direction: row;">
+                <input type="number" id="obp" placeholder="Diploma Notunuz (Örn: 92.5)" step="0.1" max="100" min="50">
+                <select id="alan" onchange="updateAlan()">
+                    <option value="say">Hedef: Sayısal</option>
+                    <option value="ea">Hedef: Eşit Ağırlık</option>
+                    <option value="tyt">Hedef: Yalnızca TYT</option>
+                </select>
+            </div>
+
+            <div class="form-group" style="margin-bottom: 30px;">
+                <select id="inputType" onchange="toggleInputType()" style="font-weight: bold; background: rgba(147, 51, 234, 0.2); border-color: var(--secondary);">
+                    <option value="net">Hesaplama Yöntemi: Net Sayımı Biliyorum</option>
+                    <option value="dy">Hesaplama Yöntemi: Doğru / Yanlış Sayılarımı Gireceğim</option>
+                </select>
+            </div>
+
+            <h3>TYT Netleri (Toplam 120 Soru)</h3>
+            <div class="yks-grid">
+                <div class="subject-group">
+                    <div class="subject-title">Türkçe (40 Soru)</div>
+                    <div class="subject-inputs">
+                        <input type="number" id="tytTr_net" class="in-net" placeholder="Net">
+                        <input type="number" id="tytTr_d" class="in-dy" placeholder="Doğru">
+                        <input type="number" id="tytTr_y" class="in-dy" placeholder="Yanlış">
+                    </div>
+                </div>
+                <div class="subject-group">
+                    <div class="subject-title">Sosyal Bilgiler (20 Soru)</div>
+                    <div class="subject-inputs">
+                        <input type="number" id="tytSos_net" class="in-net" placeholder="Net">
+                        <input type="number" id="tytSos_d" class="in-dy" placeholder="Doğru">
+                        <input type="number" id="tytSos_y" class="in-dy" placeholder="Yanlış">
+                    </div>
+                </div>
+                <div class="subject-group">
+                    <div class="subject-title">Temel Matematik (40 Soru)</div>
+                    <div class="subject-inputs">
+                        <input type="number" id="tytMat_net" class="in-net" placeholder="Net">
+                        <input type="number" id="tytMat_d" class="in-dy" placeholder="Doğru">
+                        <input type="number" id="tytMat_y" class="in-dy" placeholder="Yanlış">
+                    </div>
+                </div>
+                <div class="subject-group">
+                    <div class="subject-title">Fen Bilimleri (20 Soru)</div>
+                    <div class="subject-inputs">
+                        <input type="number" id="tytFen_net" class="in-net" placeholder="Net">
+                        <input type="number" id="tytFen_d" class="in-dy" placeholder="Doğru">
+                        <input type="number" id="tytFen_y" class="in-dy" placeholder="Yanlış">
+                    </div>
+                </div>
+            </div>
+
+            <h3 id="ayt-title">AYT Netleri (Toplam 80 Soru)</h3>
+            <div id="aytMatInputs" class="yks-grid">
+                <div class="subject-group" style="grid-column: 1 / -1;">
+                    <div class="subject-title">Matematik (40 Soru)</div>
+                    <div class="subject-inputs">
+                        <input type="number" id="aytMat_net" class="in-net" placeholder="Net">
+                        <input type="number" id="aytMat_d" class="in-dy" placeholder="Doğru">
+                        <input type="number" id="aytMat_y" class="in-dy" placeholder="Yanlış">
+                    </div>
+                </div>
+            </div>
+
+            <div id="sayInputs" class="yks-grid" style="display: grid;">
+                <div class="subject-group">
+                    <div class="subject-title">Fizik (14 Soru)</div>
+                    <div class="subject-inputs">
+                        <input type="number" id="aytFiz_net" class="in-net" placeholder="Net">
+                        <input type="number" id="aytFiz_d" class="in-dy" placeholder="Doğru">
+                        <input type="number" id="aytFiz_y" class="in-dy" placeholder="Yanlış">
+                    </div>
+                </div>
+                <div class="subject-group">
+                    <div class="subject-title">Kimya (13 Soru)</div>
+                    <div class="subject-inputs">
+                        <input type="number" id="aytKim_net" class="in-net" placeholder="Net">
+                        <input type="number" id="aytKim_d" class="in-dy" placeholder="Doğru">
+                        <input type="number" id="aytKim_y" class="in-dy" placeholder="Yanlış">
+                    </div>
+                </div>
+                <div class="subject-group">
+                    <div class="subject-title">Biyoloji (13 Soru)</div>
+                    <div class="subject-inputs">
+                        <input type="number" id="aytBiy_net" class="in-net" placeholder="Net">
+                        <input type="number" id="aytBiy_d" class="in-dy" placeholder="Doğru">
+                        <input type="number" id="aytBiy_y" class="in-dy" placeholder="Yanlış">
+                    </div>
+                </div>
+            </div>
+
+            <div id="eaInputs" class="yks-grid" style="display: none;">
+                <div class="subject-group">
+                    <div class="subject-title">Edebiyat (24 Soru)</div>
+                    <div class="subject-inputs">
+                        <input type="number" id="aytEd_net" class="in-net" placeholder="Net">
+                        <input type="number" id="aytEd_d" class="in-dy" placeholder="Doğru">
+                        <input type="number" id="aytEd_y" class="in-dy" placeholder="Yanlış">
+                    </div>
+                </div>
+                <div class="subject-group">
+                    <div class="subject-title">Tarih-1 (10 Soru)</div>
+                    <div class="subject-inputs">
+                        <input type="number" id="aytTar_net" class="in-net" placeholder="Net">
+                        <input type="number" id="aytTar_d" class="in-dy" placeholder="Doğru">
+                        <input type="number" id="aytTar_y" class="in-dy" placeholder="Yanlış">
+                    </div>
+                </div>
+                <div class="subject-group">
+                    <div class="subject-title">Coğrafya-1 (6 Soru)</div>
+                    <div class="subject-inputs">
+                        <input type="number" id="aytCog_net" class="in-net" placeholder="Net">
+                        <input type="number" id="aytCog_d" class="in-dy" placeholder="Doğru">
+                        <input type="number" id="aytCog_y" class="in-dy" placeholder="Yanlış">
+                    </div>
+                </div>
+            </div>
+
+            <button class="btn-primary" onclick="calculateYKS()"><i class="fa-solid fa-chart-line"></i> Uzman Analizini Getir</button>
+            <div id="yksResult" class="result-card result-success"></div>
+        </div>
+
+        <div id="lgs" class="module glass">
+            <h2>LGS Uzman Analizi</h2>
+            <p style="text-align: center; font-size: 14px; opacity: 0.8; margin-bottom: 20px;">Tahmini Puan, Yüzdelik Dilim ve Kritik Ders Analizi (3 Yanlış = 1 Doğru)</p>
+
+            <h3>Sözel Bölüm</h3>
+            <div class="yks-grid">
+                <div class="subject-group">
+                    <div class="subject-title">Türkçe (20 Soru) - <span style="color:#fb7185">Katsayı: 4</span></div>
+                    <div class="subject-inputs">
+                        <input type="number" id="lgsTr_d" class="lgs-dy" placeholder="Doğru" style="display:block;">
+                        <input type="number" id="lgsTr_y" class="lgs-dy" placeholder="Yanlış" style="display:block;">
+                    </div>
+                </div>
+                <div class="subject-group">
+                    <div class="subject-title">T.C. İnkılap (10 Soru) - <span style="color:#fb7185">Katsayı: 1</span></div>
+                    <div class="subject-inputs">
+                        <input type="number" id="lgsInk_d" class="lgs-dy" placeholder="Doğru" style="display:block;">
+                        <input type="number" id="lgsInk_y" class="lgs-dy" placeholder="Yanlış" style="display:block;">
+                    </div>
+                </div>
+                <div class="subject-group">
+                    <div class="subject-title">Din Kültürü (10 Soru) - <span style="color:#fb7185">Katsayı: 1</span></div>
+                    <div class="subject-inputs">
+                        <input type="number" id="lgsDin_d" class="lgs-dy" placeholder="Doğru" style="display:block;">
+                        <input type="number" id="lgsDin_y" class="lgs-dy" placeholder="Yanlış" style="display:block;">
+                    </div>
+                </div>
+                <div class="subject-group">
+                    <div class="subject-title">Yabancı Dil (10 Soru) - <span style="color:#fb7185">Katsayı: 1</span></div>
+                    <div class="subject-inputs">
+                        <input type="number" id="lgsIng_d" class="lgs-dy" placeholder="Doğru" style="display:block;">
+                        <input type="number" id="lgsIng_y" class="lgs-dy" placeholder="Yanlış" style="display:block;">
+                    </div>
+                </div>
+            </div>
+
+            <h3>Sayısal Bölüm</h3>
+            <div class="yks-grid">
+                <div class="subject-group">
+                    <div class="subject-title">Matematik (20 Soru) - <span style="color:#fb7185">Katsayı: 4</span></div>
+                    <div class="subject-inputs">
+                        <input type="number" id="lgsMat_d" class="lgs-dy" placeholder="Doğru" style="display:block;">
+                        <input type="number" id="lgsMat_y" class="lgs-dy" placeholder="Yanlış" style="display:block;">
+                    </div>
+                </div>
+                <div class="subject-group">
+                    <div class="subject-title">Fen Bilimleri (20 Soru) - <span style="color:#fb7185">Katsayı: 4</span></div>
+                    <div class="subject-inputs">
+                        <input type="number" id="lgsFen_d" class="lgs-dy" placeholder="Doğru" style="display:block;">
+                        <input type="number" id="lgsFen_y" class="lgs-dy" placeholder="Yanlış" style="display:block;">
+                    </div>
+                </div>
+            </div>
+
+            <button class="btn-primary" onclick="calculateLGS()"><i class="fa-solid fa-chart-line"></i> LGS Uzman Analizini Getir</button>
+            <div id="lgsResult" class="result-card result-success"></div>
+        </div>
+
+        <div id="agno" class="module glass">
+            <h2>AGNO / GANO Hesaplama</h2>
+            <div id="courseList">
+                <div class="form-group course-row">
+                    <input type="text" placeholder="Ders Adı (Örn: Yönetim Bilişim Sistemlerine Giriş)" value="Yönetim Bilişim Sistemlerine Giriş" style="flex:2;">
+                    <input type="number" class="credit" placeholder="Kredi" min="1" value="3" style="flex:1;">
+                    <select class="grade" style="flex:1;">
+                        <option value="4.0">AA</option><option value="3.5">BA</option><option value="3.0">BB</option>
+                        <option value="2.5">CB</option><option value="2.0">CC</option><option value="1.5">DC</option>
+                        <option value="1.0">DD</option><option value="0.5">FD</option><option value="0.0">FF</option>
+                    </select>
+                </div>
+                <div class="form-group course-row">
+                    <input type="text" placeholder="Ders Adı" value="Algoritma ve Programlama (Python)" style="flex:2;">
+                    <input type="number" class="credit" placeholder="Kredi" min="1" value="4" style="flex:1;">
+                    <select class="grade" style="flex:1;">
+                        <option value="4.0">AA</option><option value="3.5">BA</option><option value="3.0">BB</option>
+                        <option value="2.5">CB</option><option value="2.0" selected>CC</option><option value="1.5">DC</option>
+                        <option value="1.0">DD</option><option value="0.5">FD</option><option value="0.0">FF</option>
+                    </select>
+                </div>
+            </div>
+            <button class="btn-add" onclick="addCourseRow()"><i class="fa-solid fa-plus"></i> Yeni Ders Ekle</button>
+            <button class="btn-primary" onclick="calculateAGNO()">Hesapla</button>
+            <div id="agnoResult" class="result-card"></div>
+        </div>
+
+    </div>
+
+    <div class="signature">BSE</div>
+
+    <script>
+        function toggleSidebar() {
+            document.getElementById('sidebar').classList.toggle('active');
+        }
+
+        function switchModule(id) {
+            document.querySelectorAll('.module').forEach(m => m.classList.remove('active'));
+            document.getElementById(id).classList.add('active');
+            document.getElementById('sidebar').classList.remove('active');
+            
+            document.querySelectorAll('.result-card').forEach(c => c.classList.remove('show'));
+            if(id === 'belge') {
+                handleKademeChange(); // Modüle girildiğinde listeyi günceller
+            }
+        }
+
+        /* --- TAKDİR / TEŞEKKÜR (BELGE) --- */
+        const mebMufredat = {
+            ortaokul: [
+                { name: "Türkçe", hours: 5 }, { name: "Matematik", hours: 5 }, { name: "Fen Bilimleri", hours: 4 },
+                { name: "Sosyal Bilgiler / İnkılap", hours: 3 }, { name: "Yabancı Dil", hours: 4 }, { name: "Din K. ve Ahlak B.", hours: 2 },
+                { name: "Görsel Sanatlar", hours: 1 }, { name: "Müzik", hours: 1 }, { name: "Beden Eğitimi", hours: 2 }
+            ],
+            lise_ortak: [
+                { name: "Türk Dili ve Edebiyatı", hours: 5 }, { name: "Matematik", hours: 6 }, { name: "Fizik", hours: 2 },
+                { name: "Kimya", hours: 2 }, { name: "Biyoloji", hours: 2 }, { name: "Tarih", hours: 2 }, { name: "Coğrafya", hours: 2 },
+                { name: "Birinci Yabancı Dil", hours: 4 }, { name: "İkinci Yabancı Dil", hours: 2 }, { name: "Din K. ve Ahlak B.", hours: 2 },
+                { name: "Beden Eğitimi", hours: 2 }, { name: "Görsel Sanatlar / Müzik", hours: 2 }
+            ],
+            lise_say: [
+                { name: "Türk Dili ve Edebiyatı", hours: 5 }, { name: "İleri Matematik", hours: 6 }, { name: "İleri Fizik", hours: 4 },
+                { name: "İleri Kimya", hours: 4 }, { name: "İleri Biyoloji", hours: 4 }, { name: "Tarih / İnkılap", hours: 2 },
+                { name: "Yabancı Dil", hours: 4 }, { name: "İkinci Yabancı Dil", hours: 2 }, { name: "Din K. ve Ahlak B.", hours: 2 },
+                { name: "Beden Eğitimi", hours: 2 }
+            ],
+            lise_ea: [
+                { name: "Türk Dili ve Edebiyatı", hours: 5 }, { name: "İleri Matematik", hours: 6 }, { name: "Seçmeli Edebiyat", hours: 3 },
+                { name: "Coğrafya", hours: 4 }, { name: "Tarih / İnkılap", hours: 2 }, { name: "Seçmeli Tarih / Çağdaş", hours: 2 },
+                { name: "Yabancı Dil", hours: 4 }, { name: "İkinci Yabancı Dil", hours: 2 }, { name: "Din K. ve Ahlak B.", hours: 2 },
+                { name: "Felsefe Grubu / Psikoloji", hours: 2 }, { name: "Beden Eğitimi", hours: 2 }
+            ],
+            lise_soz: [
+                { name: "Türk Dili ve Edebiyatı", hours: 5 }, { name: "Seçmeli Edebiyat", hours: 5 }, { name: "Coğrafya", hours: 4 },
+                { name: "Tarih / İnkılap", hours: 2 }, { name: "Çağdaş Türk ve D. Tarihi", hours: 4 }, { name: "Felsefe Grubu", hours: 4 },
+                { name: "Yabancı Dil", hours: 4 }, { name: "Temel Matematik", hours: 2 }, { name: "Din K. ve Ahlak B.", hours: 2 },
+                { name: "Beden Eğitimi", hours: 2 }
+            ],
+            lise_dil: [
+                { name: "Türk Dili ve Edebiyatı", hours: 5 }, { name: "Seçmeli Yabancı Dil", hours: 10 }, { name: "Birinci Yabancı Dil", hours: 4 },
+                { name: "İkinci Yabancı Dil", hours: 2 }, { name: "Tarih / İnkılap", hours: 2 }, { name: "Coğrafya", hours: 2 }, 
+                { name: "Temel Matematik", hours: 2 }, { name: "Din K. ve Ahlak B.", hours: 2 }, { name: "Beden Eğitimi", hours: 2 }
+            ]
+        };
+
+        function handleKademeChange() {
+            const kademe = document.getElementById('bKademe').value;
+            const sinifContainer = document.getElementById('sinifContainer');
+            const alanContainer = document.getElementById('alanContainer');
+
+            if (kademe === "ortaokul") {
+                sinifContainer.style.display = "none";
+                alanContainer.style.display = "none";
+                generateCourseList(); // Ortaokul için direkt listeyi oluştur
+            } else {
+                sinifContainer.style.display = "block";
+                handleSinifChange(); // Sınıf değerine göre alan bilgisini kontrol et
+            }
+        }
+
+        function handleSinifChange() {
+            const sinif = parseInt(document.getElementById('bSinif').value);
+            const alanContainer = document.getElementById('alanContainer');
+
+            if (sinif === 11 || sinif === 12) {
+                alanContainer.style.display = "block";
+            } else {
+                alanContainer.style.display = "none";
+            }
+            generateCourseList();
+        }
+
+        function generateCourseList() {
+            const kademe = document.getElementById('bKademe').value;
+            const sinif = parseInt(document.getElementById('bSinif').value);
+            const alan = document.getElementById('bAlan').value;
+            const listContainer = document.getElementById('belgeList');
+            
+            listContainer.innerHTML = "";
+            let secilenMufredat = [];
+
+            if (kademe === "ortaokul") {
+                secilenMufredat = mebMufredat.ortaokul;
+            } else {
+                if (sinif === 9 || sinif === 10) {
+                    secilenMufredat = mebMufredat.lise_ortak;
+                } else {
+                    secilenMufredat = mebMufredat["lise_" + alan];
+                }
+            }
+
+            secilenMufredat.forEach(ders => {
+                const rowHtml = `
+                    <div class="form-group belge-row" style="flex-direction: row;">
+                        <input type="text" placeholder="Ders Adı" value="${ders.name}" style="flex:2;">
+                        <input type="number" class="saat" placeholder="Saat" min="1" value="${ders.hours}" style="flex:1;">
+                        <input type="number" class="not" placeholder="Not (0-100)" min="0" max="100" style="flex:1;">
+                    </div>
+                `;
+                listContainer.insertAdjacentHTML('beforeend', rowHtml);
+            });
+        }
+
+        function addBelgeRow() {
+            const rowHtml = `
+                <div class="form-group belge-row" style="flex-direction: row;">
+                    <input type="text" placeholder="Seçmeli / Ekstra Ders Adı" style="flex:2;">
+                    <input type="number" class="saat" placeholder="Saat" min="1" style="flex:1;">
+                    <input type="number" class="not" placeholder="Not (0-100)" min="0" max="100" style="flex:1;">
+                </div>
+            `;
+            document.getElementById('belgeList').insertAdjacentHTML('beforeend', rowHtml);
+        }
+
+        function calculateBelgeDinamik() {
+            const rows = document.querySelectorAll('.belge-row');
+            let totalSaat = 0;
+            let totalPuan = 0;
+            let hasZayif = false;
+
+            // Önceki sonuç sınıfı temizliği
+            const resultBox = document.getElementById('belgeResult');
+            resultBox.className = 'result-card show';
+
+            rows.forEach(row => {
+                const saat = parseFloat(row.querySelector('.saat').value);
+                const dersNotu = parseFloat(row.querySelector('.not').value);
+                
+                if (!isNaN(saat) && !isNaN(dersNotu)) {
+                    totalSaat += saat;
+                    totalPuan += (saat * dersNotu);
+                    if (dersNotu < 50) hasZayif = true;
+                }
+            });
+
+            if (totalSaat === 0) {
+                resultBox.innerHTML = "Lütfen geçerli ders saati ve not bilgisi girin!";
+                resultBox.classList.add('result-danger');
+                return;
+            }
+
+            const ortalama = (totalPuan / totalSaat).toFixed(4);
+            let message = "";
+            let badge = "";
+
+            if (ortalama >= 85.00 && !hasZayif) {
+                resultBox.classList.add('result-success');
+                badge = "🏆 Takdir Belgesi Kazandın!";
+                message = `Harika bir dönem geçirdin. Ağırlıklı not ortalaman <b>${ortalama}</b>. Başarılarının devamını dileriz!`;
+            } else if (ortalama >= 70.00 && !hasZayif) {
+                resultBox.classList.add('result-success');
+                badge = "✨ Teşekkür Belgesi Kazandın!";
+                message = `Güzel bir çalışma sergiledin. Ağırlıklı not ortalaman <b>${ortalama}</b>. Tebrik ederiz!`;
+            } else if (ortalama >= 50.00) {
+                resultBox.classList.add('result-warning');
+                badge = "👍 Sınıfı Başarıyla Geçtin!";
+                if (hasZayif) {
+                    message = `Ortalaman <b>${ortalama}</b> olmasına rağmen maalesef zayıf (50 altı) bir notun olduğu için yönetmelik gereği belge alamıyorsun. Gelecek yıl küçük bir ekstra çabayla o belgeyi gururla alacağına eminim!`;
+                } else {
+                    message = `Ortalaman <b>${ortalama}</b>. Belge puanını kıl payı kaçırmış olabilirsin ama potansiyelinin farkındayız. Gelecek dönem ekstra motivasyon ve çabayla o belgeyi gururla alacağına eminim. Kendine güven!`;
+                }
+            } else {
+                resultBox.classList.add('result-danger');
+                badge = "⚠️ Sınıf Tekrarı Riski";
+                message = `Ortalaman <b>${ortalama}</b>. Maalesef mevcut notlarına göre sınıfı geçemiyorsun. Eksiklerini hemen belirleyip aksiyon almalısın. İstersen başarabileceğini unutma!`;
+            }
+
+            resultBox.innerHTML = `
+                <div style="font-size: 22px; font-weight: bold; margin-bottom: 15px;">${badge}</div>
+                <div style="font-size: 16px; color: #e2e8f0; line-height: 1.5; text-align: center;">${message}</div>
+            `;
+        }
+
+        /* --- AGNO --- */
+        function addCourseRow() {
+            const rowHtml = `
+                <div class="form-group course-row" style="flex-direction: row;">
+                    <input type="text" placeholder="Ders Adı" style="flex:2;">
+                    <input type="number" class="credit" placeholder="Kredi" min="1" style="flex:1;">
+                    <select class="grade" style="flex:1;">
+                        <option value="4.0">AA</option><option value="3.5">BA</option><option value="3.0">BB</option>
+                        <option value="2.5">CB</option><option value="2.0">CC</option><option value="1.5">DC</option>
+                        <option value="1.0">DD</option><option value="0.5">FD</option><option value="0.0">FF</option>
+                    </select>
+                </div>
+            `;
+            document.getElementById('courseList').insertAdjacentHTML('beforeend', rowHtml);
+        }
+
+        function calculateAGNO() {
+            const rows = document.querySelectorAll('.course-row');
+            let totalCredit = 0;
+            let totalGradePoints = 0;
+
+            rows.forEach(row => {
+                const credit = parseFloat(row.querySelector('.credit').value);
+                const grade = parseFloat(row.querySelector('.grade').value);
+                if (!isNaN(credit)) {
+                    totalCredit += credit;
+                    totalGradePoints += (credit * grade);
+                }
+            });
+
+            const resultBox = document.getElementById('agnoResult');
+            resultBox.className = 'result-card show';
+
+            if (totalCredit === 0) {
+                resultBox.innerHTML = "Lütfen geçerli kredi değerleri girin!";
+                resultBox.classList.add('result-danger');
+                return;
+            }
+
+            const agno = (totalGradePoints / totalCredit).toFixed(2);
+            if (agno >= 3.0) resultBox.classList.add('result-success');
+            else if (agno >= 2.0) resultBox.classList.add('result-warning');
+            else resultBox.classList.add('result-danger');
+
+            resultBox.innerHTML = `🎓 Hesaplanan AGNO: <br> <span style="font-size: 32px; color: #fff;">${agno}</span>`;
+        }
+
+        /* --- YKS --- */
+        function updateAlan() {
+            const alan = document.getElementById('alan').value;
+            const aytTitle = document.getElementById('ayt-title');
+            const aytMat = document.getElementById('aytMatInputs');
+            const sayInputs = document.getElementById('sayInputs');
+            const eaInputs = document.getElementById('eaInputs');
+
+            if (alan === 'tyt') {
+                aytTitle.style.display = 'none';
+                aytMat.style.display = 'none';
+                sayInputs.style.display = 'none';
+                eaInputs.style.display = 'none';
+            } else {
+                aytTitle.style.display = 'block';
+                aytMat.style.display = 'grid';
+                sayInputs.style.display = alan === 'say' ? 'grid' : 'none';
+                eaInputs.style.display = alan === 'ea' ? 'grid' : 'none';
+            }
+        }
+
+        function toggleInputType() {
+            const type = document.getElementById('inputType').value;
+            const netInputs = document.querySelectorAll('.in-net');
+            const dyInputs = document.querySelectorAll('.in-dy');
+
+            if (type === 'net') {
+                netInputs.forEach(el => el.style.display = 'block');
+                dyInputs.forEach(el => el.style.display = 'none');
+            } else {
+                netInputs.forEach(el => el.style.display = 'none');
+                dyInputs.forEach(el => el.style.display = 'block');
+            }
+        }
+
+        function getSubjectNet(baseId) {
+            const type = document.getElementById('inputType').value;
+            if (type === 'net') {
+                return parseFloat(document.getElementById(baseId + '_net').value) || 0;
+            } else {
+                const d = parseFloat(document.getElementById(baseId + '_d').value) || 0;
+                const y = parseFloat(document.getElementById(baseId + '_y').value) || 0;
+                return d - (y / 4);
+            }
+        }
+
+        function calculateYKS() {
+            const obp = parseFloat(document.getElementById('obp').value) || 0;
+            const alan = document.getElementById('alan').value;
+            const isTytOnly = alan === 'tyt';
+            
+            const tr = Math.max(0, getSubjectNet('tytTr'));
+            const sos = Math.max(0, getSubjectNet('tytSos'));
+            const mat = Math.max(0, getSubjectNet('tytMat'));
+            const fen = Math.max(0, getSubjectNet('tytFen'));
+            const tytTotal = tr + sos + mat + fen;
+            
+            let aytTotal = 0;
+            let strongSubject = { name: 'TYT Türkçe', ratio: tr / 40 };
+            
+            const updateStrongest = (name, net, max) => {
+                if ((net / max) > strongSubject.ratio) strongSubject = { name, ratio: net / max };
+            };
+            
+            updateStrongest('TYT Matematik', mat, 40);
+
+            if (!isTytOnly) {
+                const aytMat = Math.max(0, getSubjectNet('aytMat'));
+                aytTotal = aytMat;
+                updateStrongest('AYT Matematik', aytMat, 40);
+
+                if (alan === 'say') {
+                    const fiz = Math.max(0, getSubjectNet('aytFiz'));
+                    const kim = Math.max(0, getSubjectNet('aytKim'));
+                    const biy = Math.max(0, getSubjectNet('aytBiy'));
+                    aytTotal += fiz + kim + biy;
+                    
+                    updateStrongest('Fizik', fiz, 14);
+                    updateStrongest('Kimya', kim, 13);
+                    updateStrongest('Biyoloji', biy, 13);
+                } else if (alan === 'ea') {
+                    const ed = Math.max(0, getSubjectNet('aytEd'));
+                    const tar = Math.max(0, getSubjectNet('aytTar'));
+                    const cog = Math.max(0, getSubjectNet('aytCog'));
+                    aytTotal += ed + tar + cog;
+                    
+                    updateStrongest('Edebiyat', ed, 24);
+                    updateStrongest('Tarih-1', tar, 10);
+                    updateStrongest('Coğrafya-1', cog, 6);
+                }
+            }
+
+            const obpPuan = obp * 0.6;
+            let hamPuan = isTytOnly ? (100 + (tytTotal * 3.333)) : (100 + (tytTotal * 1.333) + (aytTotal * 3));
+            hamPuan = Math.min(hamPuan, 500);
+            const yerlestirmePuan = hamPuan + obpPuan;
+
+            let baseSiralama = 1;
+            
+            if (alan === 'say' || alan === 'ea') {
+                if (yerlestirmePuan >= 558) baseSiralama = 1 + (560 - yerlestirmePuan) * 10;
+                else if (yerlestirmePuan >= 530) baseSiralama = 100 + (558 - yerlestirmePuan) * 200;
+                else if (yerlestirmePuan >= 450) baseSiralama = 5700 + (530 - yerlestirmePuan) * 600;
+                else if (yerlestirmePuan >= 400) baseSiralama = 53700 + (450 - yerlestirmePuan) * 1500;
+                else if (yerlestirmePuan >= 300) baseSiralama = 128700 + (400 - yerlestirmePuan) * 2500;
+                else baseSiralama = 378700 + (300 - yerlestirmePuan) * 4500;
+            } else if (alan === 'tyt') {
+                if (yerlestirmePuan >= 558) baseSiralama = 1 + (560 - yerlestirmePuan) * 20;
+                else if (yerlestirmePuan >= 500) baseSiralama = 400 + (558 - yerlestirmePuan) * 500;
+                else if (yerlestirmePuan >= 400) baseSiralama = 29400 + (500 - yerlestirmePuan) * 3000;
+                else if (yerlestirmePuan >= 300) baseSiralama = 329400 + (400 - yerlestirmePuan) * 7000;
+                else baseSiralama = 1029400 + (300 - yerlestirmePuan) * 10000;
+            }
+
+            baseSiralama = Math.max(1, Math.floor(baseSiralama));
+            const zorYilSiralama = Math.max(1, Math.floor(baseSiralama * 0.75));
+            const kolayYilSiralama = Math.floor(baseSiralama * 1.4);
+
+            let netText = isTytOnly ? 
+                `Toplam TYT Neti: <b>${tytTotal.toFixed(2)}</b>` : 
+                `Toplam TYT Neti: <b>${tytTotal.toFixed(2)}</b> | Toplam AYT Neti: <b>${aytTotal.toFixed(2)}</b>`;
+
+            let uzmanNotu = isTytOnly ? 
+                `<b>Uzman Notu:</b> Sıralamanı yukarı çeken kilit dersin <b>${strongSubject.name}</b> olmuş. Toplamda ${tytTotal.toFixed(2)} netlik performansın ile sadece TYT puan türünde bir yerleştirme bekliyorsun.` : 
+                `<b>Uzman Notu:</b> Sıralamanı yukarı çeken kilit dersin <b>${strongSubject.name}</b> olmuş. Toplamda ${tytTotal.toFixed(2)} TYT ve ${aytTotal.toFixed(2)} AYT neti ile %60'lık AYT etkisini güzel dengelemişsin.`;
+
+            const resultBox = document.getElementById('yksResult');
+            resultBox.className = 'result-card show result-success';
+            resultBox.innerHTML = `
+                <div style="font-size: 24px; margin-bottom: 10px;">🌟 Uzman Analiz Raporu</div>
+                <div style="color: #cbd5e1; margin-bottom: 10px;">${netText}</div>
+                <div style="color: #cbd5e1; margin-bottom: 20px;">Tahmini Yerleştirme Puanı: <b style="color:#fff;">${yerlestirmePuan.toFixed(2)}</b></div>
+                <table>
+                    <tr><th>Senaryo</th><th>Yığılma Durumu</th><th>Tahmini Sıralama</th></tr>
+                    <tr><td>Zor Yıl (Örn. 2021)</td><td>Düşük Yığılma</td><td><b>${zorYilSiralama.toLocaleString('tr-TR')}</b></td></tr>
+                    <tr><td>Kolay Yıl (Örn. 2022)</td><td>Yüksek Yığılma</td><td><b>${kolayYilSiralama.toLocaleString('tr-TR')}</b></td></tr>
+                </table>
+                <div class="analysis-text"><i class="fa-solid fa-lightbulb" style="color: #f59e0b;"></i> ${uzmanNotu}</div>
+            `;
+        }
+
+        /* --- LGS --- */
+        function getLgsNet(id) {
+            const d = parseFloat(document.getElementById(id + '_d').value) || 0;
+            const y = parseFloat(document.getElementById(id + '_y').value) || 0;
+            return Math.max(0, d - (y / 3));
+        }
+
+        function calculateLGS() {
+            const tr = getLgsNet('lgsTr'), ink = getLgsNet('lgsInk'), din = getLgsNet('lgsDin');
+            const ing = getLgsNet('lgsIng'), mat = getLgsNet('lgsMat'), fen = getLgsNet('lgsFen');
+
+            const totalNet = tr + ink + din + ing + mat + fen;
+
+            const trPuan = tr * 4.25, inkPuan = ink * 1.55, dinPuan = din * 1.60;
+            const ingPuan = ing * 1.50, matPuan = mat * 5.46, fenPuan = fen * 4.15;
+
+            let lgsScore = 194.76 + trPuan + inkPuan + dinPuan + ingPuan + matPuan + fenPuan;
+            if (lgsScore > 500) lgsScore = 500; 
+            if (totalNet <= 0) lgsScore = 194.76; 
+
+            let percentile = 100;
+            if (lgsScore >= 490) percentile = (500 - lgsScore) * 0.05 + 0.01;
+            else if (lgsScore >= 470) percentile = 0.5 + (490 - lgsScore) * 0.1;
+            else if (lgsScore >= 450) percentile = 2.5 + (470 - lgsScore) * 0.15;
+            else if (lgsScore >= 400) percentile = 5.5 + (450 - lgsScore) * 0.25;
+            else if (lgsScore >= 350) percentile = 18 + (400 - lgsScore) * 0.4;
+            else if (lgsScore >= 300) percentile = 38 + (350 - lgsScore) * 0.6;
+            else percentile = 68 + (300 - lgsScore) * 0.8;
+
+            if (percentile > 100) percentile = 100;
+            if (percentile < 0.01) percentile = 0.01;
+
+            let strongest = { name: 'Türkçe', power: trPuan };
+            if (matPuan > strongest.power) strongest = { name: 'Matematik', power: matPuan };
+            if (fenPuan > strongest.power) strongest = { name: 'Fen Bilimleri', power: fenPuan };
+            if (trPuan === 0 && matPuan === 0 && fenPuan === 0) strongest.name = "Belirsiz";
+
+            const resultBox = document.getElementById('lgsResult');
+            resultBox.className = 'result-card show result-success';
+            resultBox.innerHTML = `
+                <div style="font-size: 24px; margin-bottom: 10px;">🏆 LGS Uzman Analiz Raporu</div>
+                <div style="color: #cbd5e1; margin-bottom: 10px;">Toplam Netiniz: <b>${totalNet.toFixed(2)} / 90.00</b></div>
+                <table>
+                    <tr><th>Tahmini Puan (500 Üzerinden)</th><th>Tahmini Yüzdelik Dilim</th></tr>
+                    <tr><td><b style="font-size: 24px; color: #fff;">${lgsScore.toFixed(2)}</b></td><td><b style="font-size: 24px; color: #fff;">%${percentile.toFixed(2)}</b></td></tr>
+                </table>
+                <div class="analysis-text">
+                    <i class="fa-solid fa-magnifying-glass-chart" style="color: #f59e0b;"></i> 
+                    <b>Kritik Ders Analizi:</b> Standart sapma ve katsayı oranları dikkate alındığında, puanını en çok yukarı taşıyan kilit dersin <b>${strongest.name}</b> olmuş. 
+                </div>
+            `;
+        }
+
+        // Sayfa yüklendiğinde varsayılan belge listesini getir
+        window.onload = function() {
+            // Modül görünürlüğü olmadığı için fonksiyonu switchModule içine ekledik
+        };
+    </script>
+</body>
+</html>
