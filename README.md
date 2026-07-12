@@ -23,3 +23,12 @@ Academic calculation tool for university and exam students.
 - HTML  
 - CSS  
 - JavaScript
+
+---
+
+## 📱 iOS Version / iOS Versiyonu
+This project was also packaged as a native iOS app using SwiftUI and WKWebView, wrapping the same web-based calculation logic in a mobile interface.  
+Proje, SwiftUI ve WKWebView kullanılarak native bir iOS uygulaması olarak da paketlendi; aynı web tabanlı hesaplama mantığı mobil bir arayüzde sunuldu.
+
+Source code is in the `/iOS` folder.  
+Kaynak kodlar `/iOS` klasöründedir.
