@@ -23,6 +23,7 @@ Academic calculation tool for university and exam students.
 - HTML  
 - CSS  
 - JavaScript
+- Swift, SwiftUI (iOS wrapper)
 
 ---
 
